@@ -21,5 +21,8 @@
     "presets": [
       "env"
     ]
+  },
+  "dependencies": {
+    "jsmodbus": "^3.1.3"
   }
 }
