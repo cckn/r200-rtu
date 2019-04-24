@@ -1,5 +1,7 @@
-import * as utils from "../src/utils";
+// import * as utils from "../src/utils";
 
+
+const utils = require("../src/utils")
 
 test("sum test", () => {
     expect(utils.sum([3, 4])).toEqual(7)
