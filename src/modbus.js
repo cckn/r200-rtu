@@ -1,49 +1,64 @@
-const Modbus = require('jsmodbus')
+'use strict'
+
+const modbus = require('jsmodbus')
 const net = require('net')
-const socket = new net.Socket()
+
+const options = [{
+  'host': '127.0.0.1',
+  'port': '502'
+}, {
+  'host': '127.0.0.1',
+  'port': '5020'
+},]
 
 
-class myModbus {
-    constructor(unitId, timeout, host, port) {
-        this.client = new Modbus.client.TCP(socket, unitId, timeout)
-        const options = {
-            'host': host,
-            'port': port,
-        }
+function test(host, port = 502, start = 0, count = 1, unitId = 1) {
+  return new Promise(
+    (resolve, reject) => {
+      const socket = new net.Socket()
 
-        socket.on('connect', function () {
+      const client = new modbus.client.TCP(socket, unitId, 1000)
 
-            // make some calls
-
-            console.log("connect")
-
-
+      socket.on('connect', function () {
+        // console.log(option)
+        client.readHoldingRegisters(start, count)
+          .then(function (resp) {
+            console.log(resp.response._body.valuesAsArray)
+            socket.end()
+            resolve(resp.response._body.valuesAsArray)
+          }).catch(function () {
+          console.error(require('util').inspect(arguments, {
+            depth: null
+          }))
+          socket.end()
         })
-        socket.connect(options)
+      })
+
+      // socket.on('error', reject(error))
+
+      socket.connect({
+        'host': host,
+        'port': port
+      })
     }
+  )
 
-    async readHoldingRegister(_, __) {
-        this.data = await this.client.readHoldingRegisters(0, 2)
-        console.log(await this.data)
-        return await this.data.response._body.valuesAsArray
-        // this.client.readHoldingRegisters(0, 2).then(function (resp) {
-        //     // resp will look like { response : [TCP|RTU]Response, request: [TCP|RTU]Request }
-        //     // the data will be located in resp.response.body.coils: <Array>, resp.response.body.payload: <Buffer>
-        //     console.log(resp)
-        //     return resp
-        // }, console.error)
 
-        // return 30000
-
-    }
 }
 
 
-module.exports = myModbus
+// module.exports = myModbus
 
+
+function f() {
+  test("127.0.0.1", 502, 0, 10)
+  test("127.0.0.1", 5020, 0, 4)
+}
 
 if (require.main === module) {
-    const modbus = new myModbus(1, 1000, "127.0.0.1", 502)
-    modbus.readHoldingRegister(1, 2)
-    console.log("test")
+  // const modbus = new myModbus(1, 1000, "127.0.0.1", 502)
+  // modbus.readHoldingRegister(1, 2)
+  // console.log("test")
+  f()
+
 }
